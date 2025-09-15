@@ -1,0 +1,133 @@
+<!--
+  GitHub Pages Portfolio - index.html
+
+  How to use:
+  1) Create a public GitHub repository (name it e.g. `my-app-portfolio`).
+  2) Download this file and create a folder named `images` next to it.
+  3) Put your screenshots in `images/` and name them like: screenshot-1.jpg, screenshot-2.jpg, ...
+  4) Edit the <title>, header text, and captions inside the HTML to match your app.
+  5) Push `index.html` and the `images/` folder to your repo (see chat for commands).
+  6) Enable GitHub Pages for the repo (Settings → Pages → Source: `main` branch / root). The public URL will be either:
+     https://<your-username>.github.io/<repo-name>/  
+     (or for a repository named exactly `<your-username>.github.io` it will be https://<your-username>.github.io/)
+
+  This single-file page includes:
+  - A responsive screenshots gallery (grid)
+  - Click-to-open lightbox (prev/next + keyboard navigation)
+  - Lazy-loading for images
+  - Simple styles (edit in the <style> block)
+
+  Replace the example <figure> blocks with your own screenshots. Save and deploy.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Your App — Portfolio</title>
+  <meta name="description" content="Screenshots portfolio for Your App">
+  <style>
+    :root{--max-width:1100px;--gap:14px}
+    body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;margin:0;background:#f6f7f9;color:#111}
+    .header{padding:2rem;text-align:center;background:white;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+    .container{max-width:var(--max-width);margin:1.5rem auto;padding:0 1rem}
+    h2{margin:0 0 .6rem}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--gap)}
+    .card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(12,20,28,0.06);cursor:pointer;display:flex;flex-direction:column}
+    .card img{width:100%;height:260px;object-fit:cover;display:block}
+    .caption{padding:10px 12px;font-size:14px;color:#333}
+    .badge{display:inline-block;padding:6px 8px;border-radius:8px;background:#f0f0f0;font-size:12px;margin-bottom:6px}
+    .footer{padding:1.2rem;text-align:center;font-size:0.9rem;color:#555}
+    /* Modal / Lightbox */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:999}
+    .modal.open{display:flex}
+    .modal img{max-width:95%;max-height:85vh;border-radius:6px}
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.95);border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
+    .prev{left:18px}
+    .next{right:18px}
+    @media (max-width:420px){ .card img{height:200px} .caption{font-size:13px} }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 id="app-title">Your App Name</h1>
+    <p id="app-desc">Short one-line description — replace this text with your app tagline.</p>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2>Screenshots</h2>
+      <div class="grid" id="gallery">
+        <!-- EXAMPLE CARDS: Replace these blocks with your own screenshots (images/screenshot-1.jpg, etc.) -->
+        <figure class="card" data-index="0">
+          <img src="images/screenshot-1.jpg" alt="Screenshot 1" loading="lazy">
+          <figcaption class="caption"><span class="badge">iOS — Home</span> Brief caption for screenshot 1.</figcaption>
+        </figure>
+
+        <figure class="card" data-index="1">
+          <img src="images/screenshot-2.jpg" alt="Screenshot 2" loading="lazy">
+          <figcaption class="caption"><span class="badge">Android — Map</span> Brief caption for screenshot 2.</figcaption>
+        </figure>
+
+        <!-- Add more figure blocks as needed. Keep images in the images/ folder. -->
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal" role="dialog" aria-hidden="true">
+    <button class="nav-btn prev" id="prevBtn" title="Previous">&#10094;</button>
+    <img id="modalImg" src="" alt="">
+    <button class="nav-btn next" id="nextBtn" title="Next">&#10095;</button>
+  </div>
+
+  <footer class="footer">
+    <small>Made with ♥ — replace with your name or contact link</small>
+  </footer>
+
+  <script>
+    (function(){
+      const cards = Array.from(document.querySelectorAll('.card'));
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modalImg');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      let current = 0;
+
+      function openModal(index){
+        const img = cards[index].querySelector('img');
+        modalImg.src = img.src;
+        modalImg.alt = img.alt || '';
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+        current = index;
+      }
+      function closeModal(){
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden','true');
+        modalImg.src = '';
+      }
+      function showNext(delta){
+        let nextIndex = (current + delta + cards.length) % cards.length;
+        openModal(nextIndex);
+      }
+
+      cards.forEach((c,i)=> c.addEventListener('click', ()=> openModal(i)));
+      modal.addEventListener('click', (e)=> { if(e.target === modal || e.target === modalImg) closeModal(); });
+      prevBtn.addEventListener('click', (e)=> { e.stopPropagation(); showNext(-1); });
+      nextBtn.addEventListener('click', (e)=> { e.stopPropagation(); showNext(1); });
+      document.addEventListener('keydown', (e)=> {
+        if(modal.classList.contains('open')){
+          if(e.key === 'Escape') closeModal();
+          if(e.key === 'ArrowRight') showNext(1);
+          if(e.key === 'ArrowLeft') showNext(-1);
+        }
+      });
+
+      // Ensure images lazy-load
+      const imgs = document.querySelectorAll('img');
+      imgs.forEach(img => img.loading = 'lazy');
+    })();
+  </script>
+</body>
+</html>
